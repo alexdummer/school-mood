@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime
 import plotly.express as px
 import time
+import io
 
 # --- KONFIGURATION & DATENBANK ---
 def get_db_file():
@@ -38,6 +39,20 @@ def save_session(phase, gut_count, mittel_count, schlecht_count, timestamp=None)
     c.execute("INSERT INTO session_logs (phase, gut_count, mittel_count, schlecht_count, timestamp) VALUES (?, ?, ?, ?, ?)", 
               (phase, gut_count, mittel_count, schlecht_count, timestamp))
     conn.commit()
+    conn.close()
+
+def save_dataframe_to_db(df_import):
+    """Speichert ein gesamtes DataFrame (z.B. aus einem Excel-Import) direkt in die Datenbank."""
+    conn = sqlite3.connect(get_db_file())
+    
+    # Stellen wir sicher, dass nur die relevanten Spalten übernommen werden.
+    columns_to_keep = ['phase', 'gut_count', 'mittel_count', 'schlecht_count', 'timestamp']
+    if all(col in df_import.columns for col in columns_to_keep):
+        df_to_save = df_import[columns_to_keep].copy()
+        # Falls timestamp in dataframe noch string ist, umbauen zu string representation für sqlite
+        df_to_save['timestamp'] = df_to_save['timestamp'].astype(str)
+        df_to_save.to_sql('session_logs', conn, if_exists='append', index=False)
+        conn.commit()
     conn.close()
 
 def get_data():
@@ -112,12 +127,34 @@ def show_kiosk_active(phase):
     st.markdown("""
     <style>
     /* Größenanpassung: Streamlit verpackt Text in <p> Tags in Buttons */
-    div[data-testid="stButton"] button p, div.stButton > button p {
+    div[data-testid="column"]:nth-of-type(1) div[data-testid="stButton"] button p,
+    div[data-testid="stColumn"]:nth-of-type(1) div[data-testid="stButton"] button p,
+    div[data-testid="column"]:nth-of-type(1) div.stButton > button p,
+    div[data-testid="stColumn"]:nth-of-type(1) div.stButton > button p,
+    div[data-testid="column"]:nth-of-type(2) div[data-testid="stButton"] button p,
+    div[data-testid="stColumn"]:nth-of-type(2) div[data-testid="stButton"] button p,
+    div[data-testid="column"]:nth-of-type(2) div.stButton > button p,
+    div[data-testid="stColumn"]:nth-of-type(2) div.stButton > button p,
+    div[data-testid="column"]:nth-of-type(3) div[data-testid="stButton"] button p,
+    div[data-testid="stColumn"]:nth-of-type(3) div[data-testid="stButton"] button p,
+    div[data-testid="column"]:nth-of-type(3) div.stButton > button p,
+    div[data-testid="stColumn"]:nth-of-type(3) div.stButton > button p {
         font-size: 100px !important;
         line-height: 1 !important;
         margin: 0 !important;
     }
-    div[data-testid="stButton"] button, div.stButton > button {
+    div[data-testid="column"]:nth-of-type(1) div[data-testid="stButton"] button,
+    div[data-testid="stColumn"]:nth-of-type(1) div[data-testid="stButton"] button,
+    div[data-testid="column"]:nth-of-type(1) div.stButton > button,
+    div[data-testid="stColumn"]:nth-of-type(1) div.stButton > button,
+    div[data-testid="column"]:nth-of-type(2) div[data-testid="stButton"] button,
+    div[data-testid="stColumn"]:nth-of-type(2) div[data-testid="stButton"] button,
+    div[data-testid="column"]:nth-of-type(2) div.stButton > button,
+    div[data-testid="stColumn"]:nth-of-type(2) div.stButton > button,
+    div[data-testid="column"]:nth-of-type(3) div[data-testid="stButton"] button,
+    div[data-testid="stColumn"]:nth-of-type(3) div[data-testid="stButton"] button,
+    div[data-testid="column"]:nth-of-type(3) div.stButton > button,
+    div[data-testid="stColumn"]:nth-of-type(3) div.stButton > button {
         height: 200px !important;
         width: 100% !important;
     }
@@ -200,7 +237,39 @@ def show_kiosk_active(phase):
             st.session_state.voted = True
             st.rerun()
 
-    st.markdown("<br><br><br>", unsafe_allow_html=True)
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # --- Schüler-Dashboard Live Ansicht ---
+    st.markdown("### 📊 Aktuelle Stimmung:")
+    st.info("So haben wir in dieser Session bisher abgestimmt:")
+    
+    live_df = pd.DataFrame({
+        'Stimmung': ['Gut', 'Mittel', 'Schlecht'],
+        'Stimmen': [
+            st.session_state.session_votes["Gut"],
+            st.session_state.session_votes["Mittel"],
+            st.session_state.session_votes["Schlecht"]
+        ]
+    })
+    
+    color_map = {"Gut": "#2ecc71", "Mittel": "#f39c12", "Schlecht": "#e74c3c"}
+    
+    # Prüfen ob bereits Stimmen vorhanden sind, sonst macht Kreisdiagramm keinen Sinn
+    if live_df['Stimmen'].sum() > 0:
+        fig_live = px.pie(
+            live_df, 
+            values='Stimmen', 
+            names='Stimmung', 
+            color='Stimmung', 
+            color_discrete_map=color_map,
+            hole=0.4
+        )
+        fig_live.update_layout(height=300)
+        st.plotly_chart(fig_live, use_container_width=True)
+    else:
+        st.write("*Noch keine Stimmen abgegeben.*")
+        
+    st.markdown("<br><br>", unsafe_allow_html=True)
     
     # Versteckter Beenden-Button für die Lehrkraft
     with st.expander("Lehrkraft-Bereich"):
@@ -228,6 +297,36 @@ def show_admin_dashboard():
     
     df = get_data()
     
+    # --- IMPORT BEREICH ---
+    with st.expander("📥 Excel Daten Importieren / Zusammenführen"):
+        uploaded_file = st.file_uploader("Wähle eine Excel Datei (.xlsx) aus", type=["xlsx"])
+        if uploaded_file is not None:
+            try:
+                df_imported = pd.read_excel(uploaded_file)
+                st.write("Vorschau der hochgeladenen Daten:")
+                st.dataframe(df_imported.head(3))
+                
+                col_imp1, col_imp2 = st.columns(2)
+                with col_imp1:
+                    if st.button("Nur ansehen (temporär)"):
+                        # Füge die importierten Daten zum df hinzu, aber speichere sie nicht
+                        df = pd.concat([df, df_imported], ignore_index=True)
+                        if 'timestamp' in df.columns:
+                            df['timestamp'] = pd.to_datetime(df['timestamp'])
+                            df['date'] = df['timestamp'].dt.date
+                            df['hour'] = df['timestamp'].dt.hour
+                            df['weekday'] = df['timestamp'].dt.day_name()
+                        st.success("Daten wurden temporär hinzugefügt!")
+                
+                with col_imp2:
+                    if st.button("In Datenbank speichern"):
+                        save_dataframe_to_db(df_imported)
+                        st.success("Daten wurden dauerhaft in die Datenbank übernommen!")
+                        time.sleep(2)
+                        st.rerun()
+            except Exception as e:
+                st.error(f"Fehler beim Einlesen der Excel Datei: {e}")
+
     if df.empty:
         st.warning("Noch keine Daten vorhanden.")
         return
@@ -236,20 +335,33 @@ def show_admin_dashboard():
     st.subheader("Filter")
     col_f1, col_f2 = st.columns(2)
     with col_f1:
-        selected_phase = st.multiselect("Phase wählen", df['phase'].unique(), default=df['phase'].unique())
+        if 'phase' in df.columns:
+            selected_phase = st.multiselect("Phase wählen", df['phase'].dropna().unique(), default=df['phase'].dropna().unique())
+        else:
+            selected_phase = []
     with col_f2:
         # Datumsbereich
-        min_date = df['date'].min()
-        max_date = df['date'].max()
-        date_range = st.date_input("Zeitraum", [min_date, max_date])
+        if 'date' in df.columns:
+            min_date = df['date'].min()
+            max_date = df['date'].max()
+            if pd.isna(min_date) or pd.isna(max_date):
+                date_range = []
+            else:
+                date_range = st.date_input("Zeitraum", [min_date, max_date])
+        else:
+            date_range = []
 
     # Daten filtern
-    mask = (df['phase'].isin(selected_phase))
+    if 'phase' in df.columns:
+        mask = (df['phase'].isin(selected_phase))
+    else:
+        mask = pd.Series([True]*len(df))
+        
     # Einfache Datumsfilter-Logik (falls range gewählt wurde)
-    if isinstance(date_range, list) and len(date_range) == 2:
+    if isinstance(date_range, list) and len(date_range) == 2 and 'date' in df.columns:
         mask = mask & (df['date'] >= date_range[0]) & (df['date'] <= date_range[1])
     
-    filtered_df = df[mask]
+    filtered_df = df[mask].copy()
     
     # KPIs
     st.markdown("### Übersicht")
@@ -317,9 +429,25 @@ def show_admin_dashboard():
     else:
         st.info("Keine Daten für Tageszeit-Trend")
     
-    # Rohdaten anzeigen (optional)
-    with st.expander("Rohdaten anzeigen"):
-        st.dataframe(filtered_df.sort_values(by='timestamp', ascending=False))
+    # Rohdaten anzeigen und Exportieren (optional)
+    with st.expander("Rohdaten anzeigen & Exportieren"):
+        if 'timestamp' in filtered_df.columns:
+            st.dataframe(filtered_df.sort_values(by='timestamp', ascending=False))
+        else:
+            st.dataframe(filtered_df)
+            
+        # Excel Export Button
+        buffer = io.BytesIO()
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            filtered_df.to_excel(writer, index=False, sheet_name='SchoolMood_Data')
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.download_button(
+            label="📥 Als Excel (XLSX) herunterladen",
+            data=buffer.getvalue(),
+            file_name="schoolmood_export.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 
 # --- MAIN APP LOGIC ---
@@ -327,14 +455,7 @@ def main():
     st.set_page_config(page_title="Schul-Wohlbefinden", page_icon="🏫", layout="centered")
     
     # CSS Hacks um Streamlit "app-artiger" aussehen zu lassen
-    css = """
-    <style>
-    div.stButton > button:first-child {
-        font-size: 100px;
-        height: 200px;
-        margin-top: 20px;
-    }
-    """
+    css = ""
     
     # Wenn Kiosk aktiv ist, blenden wir die Sidebar komplett per CSS aus, 
     # damit Kinder nicht im Menü herumklicken können.

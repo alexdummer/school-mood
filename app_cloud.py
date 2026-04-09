@@ -113,12 +113,34 @@ def show_kiosk_active(phase):
     st.markdown("""
     <style>
     /* Größenanpassung: Streamlit verpackt Text in <p> Tags in Buttons */
-    div[data-testid="stButton"] button p, div.stButton > button p {
+    div[data-testid="column"]:nth-of-type(1) div[data-testid="stButton"] button p,
+    div[data-testid="stColumn"]:nth-of-type(1) div[data-testid="stButton"] button p,
+    div[data-testid="column"]:nth-of-type(1) div.stButton > button p,
+    div[data-testid="stColumn"]:nth-of-type(1) div.stButton > button p,
+    div[data-testid="column"]:nth-of-type(2) div[data-testid="stButton"] button p,
+    div[data-testid="stColumn"]:nth-of-type(2) div[data-testid="stButton"] button p,
+    div[data-testid="column"]:nth-of-type(2) div.stButton > button p,
+    div[data-testid="stColumn"]:nth-of-type(2) div.stButton > button p,
+    div[data-testid="column"]:nth-of-type(3) div[data-testid="stButton"] button p,
+    div[data-testid="stColumn"]:nth-of-type(3) div[data-testid="stButton"] button p,
+    div[data-testid="column"]:nth-of-type(3) div.stButton > button p,
+    div[data-testid="stColumn"]:nth-of-type(3) div.stButton > button p {
         font-size: 100px !important;
         line-height: 1 !important;
         margin: 0 !important;
     }
-    div[data-testid="stButton"] button, div.stButton > button {
+    div[data-testid="column"]:nth-of-type(1) div[data-testid="stButton"] button,
+    div[data-testid="stColumn"]:nth-of-type(1) div[data-testid="stButton"] button,
+    div[data-testid="column"]:nth-of-type(1) div.stButton > button,
+    div[data-testid="stColumn"]:nth-of-type(1) div.stButton > button,
+    div[data-testid="column"]:nth-of-type(2) div[data-testid="stButton"] button,
+    div[data-testid="stColumn"]:nth-of-type(2) div[data-testid="stButton"] button,
+    div[data-testid="column"]:nth-of-type(2) div.stButton > button,
+    div[data-testid="stColumn"]:nth-of-type(2) div.stButton > button,
+    div[data-testid="column"]:nth-of-type(3) div[data-testid="stButton"] button,
+    div[data-testid="stColumn"]:nth-of-type(3) div[data-testid="stButton"] button,
+    div[data-testid="column"]:nth-of-type(3) div.stButton > button,
+    div[data-testid="stColumn"]:nth-of-type(3) div.stButton > button {
         height: 200px !important;
         width: 100% !important;
     }
