@@ -7,7 +7,7 @@ Damit deine gesammelten Kiosk-Daten erhalten bleiben, habe ich dir die Datei `ap
 ## Schritt-für-Schritt Anleitung
 
 ### 1. Eine kostenlose PostgreSQL Datenbank erstellen
-Die einfachste Möglichkeit für Streamlit ist **Supabase** oder **Neon**. 
+Die einfachste Möglichkeit für Streamlit ist **Supabase** oder **Neon**.
 1. Gehe zu [Supabase](https://supabase.com/) und erstelle ein kostenloses Konto.
 2. Erstelle ein neues Projekt.
 3. Gehe im Dashboard auf **Project Settings -> Database** und kopiere dir die *Connection String* (URI). Sie sieht ungefähr so aus:
