@@ -70,13 +70,16 @@ def draw_dashboard(df):
 
     with c1:
         st.subheader("Verteilung der Stimmung")
-        mood_counts = pd.DataFrame({"Stimmung": ["Gut", "Mittel", "Schlecht"], "Anzahl": [gut_total, mittel_total, schlecht_total]})
+        if total_votes > 0:
+            mood_counts = pd.DataFrame({"Stimmung": ["Gut", "Mittel", "Schlecht"], "Anzahl": [gut_total, mittel_total, schlecht_total]})
 
-        # Eigene Farben definieren
-        color_map = {"Gut": "#2ecc71", "Mittel": "#f1c40f", "Schlecht": "#e74c3c"}
+            # Eigene Farben definieren
+            color_map = {"Gut": "#2ecc71", "Mittel": "#f1c40f", "Schlecht": "#e74c3c"}
 
-        fig_pie = px.pie(mood_counts, values="Anzahl", names="Stimmung", color="Stimmung", color_discrete_map=color_map, hole=0.4)
-        st.plotly_chart(fig_pie)
+            fig_pie = px.pie(mood_counts, values="Anzahl", names="Stimmung", color="Stimmung", color_discrete_map=color_map, hole=0.4)
+            st.plotly_chart(fig_pie)
+        else:
+            st.info("Noch keine Stimmabgaben vorhanden.")
 
     # 2. Verlauf über die Zeit (Balkendiagramm gestapelt nach Datum)
     with c2:
