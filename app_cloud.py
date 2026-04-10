@@ -6,6 +6,8 @@ from src.auth import check_password
 from src.kiosk import show_kiosk_active
 from src.dashboard import draw_dashboard
 
+st.set_page_config(page_title="Schul-Wohlbefinden (Cloud)", page_icon="🏫", layout="centered")
+
 # --- DATENBANK VERBINDUNG (STREAMLIT CLOUD) ---
 try:
     conn = st.connection("postgresql", type="sql")
@@ -173,8 +175,6 @@ def show_admin_dashboard():
 
 
 def main():
-    st.set_page_config(page_title="Schul-Wohlbefinden (Cloud)", page_icon="🏫", layout="centered")
-
     css = ""
     if st.session_state.get("kiosk_active", False):
         css += """
