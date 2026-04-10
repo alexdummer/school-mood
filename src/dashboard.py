@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 
 
@@ -67,11 +66,12 @@ def draw_dashboard(df):
 
     # 1. Stimmung Verteilung (Tortendiagramm)
     st.markdown("---")
+    st.subheader("Verteilung der Stimmung")
 
-    c1, c2 = st.columns(2)
+    # Mittig zentrieren für schönere Optik
+    col_spacer1, col_pie, col_spacer2 = st.columns([1, 2, 1])
 
-    with c1:
-        st.subheader("Verteilung der Stimmung")
+    with col_pie:
         if total_votes > 0:
             labels = ["Gut", "Mittel", "Schlecht"]
             values = [gut_total, mittel_total, schlecht_total]
@@ -81,35 +81,5 @@ def draw_dashboard(df):
             st.plotly_chart(fig_pie, use_container_width=True)
         else:
             st.info("Noch keine Stimmabgaben vorhanden.")
-
-    # 2. Verlauf über die Zeit (Balkendiagramm gestapelt nach Datum)
-    with c2:
-        st.subheader("Verlauf über Tage")
-        if not filtered_df.empty and total_votes > 0:
-            daily_mood = filtered_df.groupby("date")[["gut_count", "mittel_count", "schlecht_count"]].sum().reset_index()
-            daily_mood["date"] = daily_mood["date"].astype(str)
-
-            fig_bar = go.Figure()
-            fig_bar.add_trace(go.Bar(x=daily_mood["date"], y=daily_mood["gut_count"], name="Gut", marker_color="#2ecc71"))
-            fig_bar.add_trace(go.Bar(x=daily_mood["date"], y=daily_mood["mittel_count"], name="Mittel", marker_color="#f1c40f"))
-            fig_bar.add_trace(go.Bar(x=daily_mood["date"], y=daily_mood["schlecht_count"], name="Schlecht", marker_color="#e74c3c"))
-
-            fig_bar.update_layout(barmode="group")
-            st.plotly_chart(fig_bar, use_container_width=True)
-        else:
-            st.info("Noch keine Stimmabgaben vorhanden.")
-
-    # 3. Tageszeit-Trend (Wann wird abgestimmt?)
-    st.markdown("---")
-    st.subheader("Aktivität nach Uhrzeit")
-    if not filtered_df.empty:
-        # Summiere alle Stimmen pro Stunde
-        hourly_counts = (
-            filtered_df.groupby("hour")[["gut_count", "mittel_count", "schlecht_count"]].sum().sum(axis=1).reset_index(name="Anzahl Stimmen")
-        )
-        fig_line = px.line(hourly_counts, x="hour", y="Anzahl Stimmen", markers=True)
-        st.plotly_chart(fig_line)
-    else:
-        st.info("Keine Daten für Tageszeit-Trend")
 
     return filtered_df
