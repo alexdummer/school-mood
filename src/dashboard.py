@@ -68,9 +68,6 @@ def draw_dashboard(df):
     # 1. Stimmung Verteilung (Tortendiagramm)
     st.markdown("---")
 
-    # Eigene Farben definieren
-    color_map = {"Gut": "#2ecc71", "Mittel": "#f1c40f", "Schlecht": "#e74c3c"}
-
     c1, c2 = st.columns(2)
 
     with c1:
@@ -90,14 +87,14 @@ def draw_dashboard(df):
         st.subheader("Verlauf über Tage")
         if not filtered_df.empty and total_votes > 0:
             daily_mood = filtered_df.groupby("date")[["gut_count", "mittel_count", "schlecht_count"]].sum().reset_index()
-            daily_mood_melted = daily_mood.melt(
-                id_vars="date", value_vars=["gut_count", "mittel_count", "schlecht_count"], var_name="mood", value_name="Anzahl"
-            )
-            daily_mood_melted["mood"] = daily_mood_melted["mood"].map({"gut_count": "Gut", "mittel_count": "Mittel", "schlecht_count": "Schlecht"})
-            # Datum in String umwandeln für bessere Plotly Kompatibilität auf der X-Achse
-            daily_mood_melted["date"] = daily_mood_melted["date"].astype(str)
+            daily_mood["date"] = daily_mood["date"].astype(str)
 
-            fig_bar = px.bar(daily_mood_melted, x="date", y="Anzahl", color="mood", color_discrete_map=color_map, barmode="group")
+            fig_bar = go.Figure()
+            fig_bar.add_trace(go.Bar(x=daily_mood["date"], y=daily_mood["gut_count"], name="Gut", marker_color="#2ecc71"))
+            fig_bar.add_trace(go.Bar(x=daily_mood["date"], y=daily_mood["mittel_count"], name="Mittel", marker_color="#f1c40f"))
+            fig_bar.add_trace(go.Bar(x=daily_mood["date"], y=daily_mood["schlecht_count"], name="Schlecht", marker_color="#e74c3c"))
+
+            fig_bar.update_layout(barmode="group")
             st.plotly_chart(fig_bar, use_container_width=True)
         else:
             st.info("Noch keine Stimmabgaben vorhanden.")
