@@ -143,8 +143,8 @@ def show_kiosk_active(phase, save_session_callback):
         st.write("Bisherige Stimmen (werden beim Beenden gespeichert):")
         st.write(
             f"😃 {st.session_state.session_votes['Gut']} |"
-            + " 😐 {st.session_state.session_votes['Mittel']} |"
-            + " ☹️ {st.session_state.session_votes['Schlecht']}"
+            + f" 😐 {st.session_state.session_votes['Mittel']} |"
+            + f" ☹️ {st.session_state.session_votes['Schlecht']}"
         )
         if st.button("❌ Session beenden"):
             # Speichere die aggregierten Daten in die Datenbank über die übergebene Callback-Funktion
