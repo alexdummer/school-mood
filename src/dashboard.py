@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 
 def draw_dashboard(df):
@@ -66,18 +67,21 @@ def draw_dashboard(df):
 
     # 1. Stimmung Verteilung (Tortendiagramm)
     st.markdown("---")
+
+    # Eigene Farben definieren
+    color_map = {"Gut": "#2ecc71", "Mittel": "#f1c40f", "Schlecht": "#e74c3c"}
+
     c1, c2 = st.columns(2)
 
     with c1:
         st.subheader("Verteilung der Stimmung")
         if total_votes > 0:
-            mood_counts = pd.DataFrame({"Stimmung": ["Gut", "Mittel", "Schlecht"], "Anzahl": [gut_total, mittel_total, schlecht_total]})
+            labels = ["Gut", "Mittel", "Schlecht"]
+            values = [gut_total, mittel_total, schlecht_total]
+            colors = ["#2ecc71", "#f1c40f", "#e74c3c"]
 
-            # Eigene Farben definieren
-            color_map = {"Gut": "#2ecc71", "Mittel": "#f1c40f", "Schlecht": "#e74c3c"}
-
-            fig_pie = px.pie(mood_counts, values="Anzahl", names="Stimmung", color="Stimmung", color_discrete_map=color_map, hole=0.4)
-            st.plotly_chart(fig_pie)
+            fig_pie = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors), hole=0.4)])
+            st.plotly_chart(fig_pie, use_container_width=True)
         else:
             st.info("Noch keine Stimmabgaben vorhanden.")
 

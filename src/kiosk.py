@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 
 
 def show_kiosk_active(phase, save_session_callback):
@@ -125,11 +125,13 @@ def show_kiosk_active(phase, save_session_callback):
         }
     )
 
-    color_map = {"Gut": "#2ecc71", "Mittel": "#f39c12", "Schlecht": "#e74c3c"}
+    total_live = live_df["Stimmen"].sum()
+    if total_live > 0:
+        labels = ["Gut", "Mittel", "Schlecht"]
+        values = [st.session_state.session_votes["Gut"], st.session_state.session_votes["Mittel"], st.session_state.session_votes["Schlecht"]]
+        colors = ["#2ecc71", "#f39c12", "#e74c3c"]
 
-    # Prüfen ob bereits Stimmen vorhanden sind, sonst macht Kreisdiagramm keinen Sinn
-    if live_df["Stimmen"].sum() > 0:
-        fig_live = px.pie(live_df, values="Stimmen", names="Stimmung", color="Stimmung", color_discrete_map=color_map, hole=0.4)
+        fig_live = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors), hole=0.4)])
         fig_live.update_layout(height=300)
         st.plotly_chart(fig_live, use_container_width=True)
     else:
