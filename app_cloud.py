@@ -73,6 +73,7 @@ def get_data():
         df = conn.query(
             "SELECT * FROM session_logs WHERE school_id = :school",
             params={"school": school_id},
+            ttl=0,
         )
     except Exception:
         df = pd.DataFrame()
