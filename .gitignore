@@ -1,3 +1,5 @@
 venv
 .streamlit
+.flake8
 *.db
+__pycache__
