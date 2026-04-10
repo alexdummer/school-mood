@@ -88,17 +88,19 @@ def draw_dashboard(df):
     # 2. Verlauf über die Zeit (Balkendiagramm gestapelt nach Datum)
     with c2:
         st.subheader("Verlauf über Tage")
-        if not filtered_df.empty:
+        if not filtered_df.empty and total_votes > 0:
             daily_mood = filtered_df.groupby("date")[["gut_count", "mittel_count", "schlecht_count"]].sum().reset_index()
             daily_mood_melted = daily_mood.melt(
                 id_vars="date", value_vars=["gut_count", "mittel_count", "schlecht_count"], var_name="mood", value_name="Anzahl"
             )
             daily_mood_melted["mood"] = daily_mood_melted["mood"].map({"gut_count": "Gut", "mittel_count": "Mittel", "schlecht_count": "Schlecht"})
+            # Datum in String umwandeln für bessere Plotly Kompatibilität auf der X-Achse
+            daily_mood_melted["date"] = daily_mood_melted["date"].astype(str)
 
             fig_bar = px.bar(daily_mood_melted, x="date", y="Anzahl", color="mood", color_discrete_map=color_map, barmode="group")
-            st.plotly_chart(fig_bar)
+            st.plotly_chart(fig_bar, use_container_width=True)
         else:
-            st.info("Keine Daten für Verlauf")
+            st.info("Noch keine Stimmabgaben vorhanden.")
 
     # 3. Tageszeit-Trend (Wann wird abgestimmt?)
     st.markdown("---")
