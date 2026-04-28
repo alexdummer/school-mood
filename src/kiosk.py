@@ -1,47 +1,8 @@
 # Letztes Update: Popup Bugfix und Audio Anpassung
 import streamlit as st
 import pandas as pd
-import streamlit.components.v1 as components
 import plotly.graph_objects as go
-import wave
-import struct
-import math
-import base64
-import io
 import uuid
-
-
-@st.cache_data
-def get_beep_audio_base64():
-    """Generates a soft success beep WAV file and returns its base64 string."""
-    buffer = io.BytesIO()
-
-    nchannels = 1
-    sampwidth = 2
-    framerate = 44100
-    nframes = int(framerate * 0.4)  # 0.4 seconds long
-    comptype = "NONE"
-    compname = "not compressed"
-
-    with wave.open(buffer, "w") as wav_file:
-        wav_file.setparams((nchannels, sampwidth, framerate, nframes, comptype, compname))
-
-        freq1 = 1046.50  # C6
-        freq2 = 1318.51  # E6
-
-        for i in range(nframes):
-            env = 1.0 - (i / nframes)  # Fade out envelope
-            t = float(i) / framerate
-            value = math.sin(2.0 * math.pi * freq1 * t) + math.sin(2.0 * math.pi * freq2 * t)
-            value = value / 2.0
-
-            volume = 16000 * env
-            sample = int(value * volume)
-
-            wav_file.writeframes(struct.pack("<h", sample))
-
-    buffer.seek(0)
-    return base64.b64encode(buffer.read()).decode("utf-8")
 
 
 def show_kiosk_active(phase, save_session_callback):
@@ -51,8 +12,12 @@ def show_kiosk_active(phase, save_session_callback):
     if "popup_type" not in st.session_state:
         st.session_state.popup_type = ""
 
-    st.markdown("<h1 style='text-align: center;'>Wie geht es dir heute?</h1>", unsafe_allow_html=True)
-    st.markdown(f"<h3 style='text-align: center; color: gray;'>{phase}</h3>", unsafe_allow_html=True)
+    st.markdown(
+        "<h1 style='text-align: center; font-size: clamp(1.5rem, 5vw, 3rem); margin-bottom: 0;'>Wie geht es dir heute?</h1>", unsafe_allow_html=True
+    )
+    st.markdown(
+        f"<h3 style='text-align: center; color: gray; font-size: clamp(1rem, 3vw, 1.5rem); margin-top: 0;'>{phase}</h3>", unsafe_allow_html=True
+    )
     st.markdown("---")
 
     st.markdown(
@@ -71,9 +36,14 @@ def show_kiosk_active(phase, save_session_callback):
     div[data-testid="stColumn"]:nth-of-type(3) div[data-testid="stButton"] button p,
     div[data-testid="column"]:nth-of-type(3) div.stButton > button p,
     div[data-testid="stColumn"]:nth-of-type(3) div.stButton > button p {
-        font-size: 100px !important;
+        font-size: clamp(40px, 10vw, 100px) !important;
         line-height: 1 !important;
         margin: 0 !important;
+        padding: 0 !important;
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
     div[data-testid="column"]:nth-of-type(1) div[data-testid="stButton"] button,
     div[data-testid="stColumn"]:nth-of-type(1) div[data-testid="stButton"] button,
@@ -87,8 +57,11 @@ def show_kiosk_active(phase, save_session_callback):
     div[data-testid="stColumn"]:nth-of-type(3) div[data-testid="stButton"] button,
     div[data-testid="column"]:nth-of-type(3) div.stButton > button,
     div[data-testid="stColumn"]:nth-of-type(3) div.stButton > button {
-        height: 200px !important;
+        height: clamp(60px, 20vh, 200px) !important;
         width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Farben für die Abstimmungs-Buttons in Kiosk View */
@@ -141,26 +114,58 @@ def show_kiosk_active(phase, save_session_callback):
         unsafe_allow_html=True,
     )
 
-    col1, col2, col3 = st.columns(3)
+    main_col_left, main_col_right = st.columns([5, 4], gap="small")
 
-    with col1:
-        if st.button("😃"):
-            st.session_state.session_votes["Gut"] += 1
-            st.session_state.show_popup = True
-            st.session_state.popup_type = "Gut"
+    with main_col_left:
+        st.markdown("<div style='margin-top: clamp(20px, 12vh, 120px);'></div>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
 
-    with col2:
-        if st.button("😐"):
-            st.session_state.session_votes["Mittel"] += 1
-            st.session_state.show_popup = True
-            st.session_state.popup_type = "Mittel"
+        with col1:
+            if st.button("😃"):
+                st.session_state.session_votes["Gut"] += 1
+                st.session_state.show_popup = True
+                st.session_state.popup_type = "Gut"
 
-    with col3:
-        if st.button("☹️"):
-            st.session_state.session_votes["Schlecht"] += 1
-            st.session_state.show_popup = True
-            st.session_state.popup_type = "Schlecht"
+        with col2:
+            if st.button("😐"):
+                st.session_state.session_votes["Mittel"] += 1
+                st.session_state.show_popup = True
+                st.session_state.popup_type = "Mittel"
 
+        with col3:
+            if st.button("☹️"):
+                st.session_state.session_votes["Schlecht"] += 1
+                st.session_state.show_popup = True
+                st.session_state.popup_type = "Schlecht"
+
+    with main_col_right:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("### 📊 Aktuelle Stimmung:")
+
+        live_df = pd.DataFrame(
+            {
+                "Stimmung": ["Gut", "Mittel", "Schlecht"],
+                "Stimmen": [
+                    st.session_state.session_votes["Gut"],
+                    st.session_state.session_votes["Mittel"],
+                    st.session_state.session_votes["Schlecht"],
+                ],
+            }
+        )
+
+        total_live = live_df["Stimmen"].sum()
+        if total_live > 0:
+            labels = ["Gut", "Mittel", "Schlecht"]
+            values = [st.session_state.session_votes["Gut"], st.session_state.session_votes["Mittel"], st.session_state.session_votes["Schlecht"]]
+            colors = ["#2ecc71", "#f39c12", "#e74c3c"]
+
+            fig_live = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors), hole=0.4)])
+            fig_live.update_layout(height=500, margin=dict(l=10, r=10, t=10, b=10))
+            st.plotly_chart(fig_live, use_container_width=True)
+        else:
+            st.write("*Noch keine Stimmen abgegeben.*")
+
+    # Popup Logic
     if st.session_state.show_popup:
         st.session_state.show_popup = False
 
@@ -177,7 +182,6 @@ def show_kiosk_active(phase, save_session_callback):
             color = "#e74c3c"
             bg_color = "#fdedec"
 
-        b64_audio = get_beep_audio_base64()
         unique_id = uuid.uuid4().hex
 
         popup_html = f"""
@@ -196,23 +200,25 @@ def show_kiosk_active(phase, save_session_callback):
             left: 50%;
             transform: translate(-50%, -50%);
             background: {bg_color};
-            padding: 50px 80px;
-            border-radius: 30px;
+            padding: clamp(20px, 5vw, 50px) clamp(30px, 8vw, 80px);
+            border-radius: clamp(15px, 3vw, 30px);
+            width: 80%;
+            max-width: 600px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             z-index: 99999;
             text-align: center;
-            border: 8px solid {color};
+            border: clamp(4px, 1vw, 8px) solid {color};
             animation: fadeOutPopup-{unique_id} 2.5s forwards;
             pointer-events: none;
         }}
         .custom-popup-{unique_id} h1 {{
-            font-size: 150px;
+            font-size: clamp(60px, 15vw, 150px);
             margin: 0;
             padding: 0;
             line-height: 1.2;
         }}
         .custom-popup-{unique_id} p {{
-            font-size: 45px;
+            font-size: clamp(20px, 5vw, 45px);
             color: #333;
             margin-top: 15px;
             font-family: sans-serif;
@@ -239,55 +245,19 @@ def show_kiosk_active(phase, save_session_callback):
         """
         st.markdown(popup_html, unsafe_allow_html=True)
 
-        # Audio separat einbinden über components.html
-        audio_js = f"""
-        <script>
-            // unique id {unique_id}
-            var audio = new Audio("data:audio/wav;base64,{b64_audio}");
-            audio.play().catch(function(e) {{
-                console.log("Audio autoplay wurde vom Browser blockiert:", e);
-            }});
-        </script>
-        """
-        components.html(audio_js, height=0)
-
-    st.markdown("<br><br>", unsafe_allow_html=True)
-
-    # --- Schüler-Dashboard Live Ansicht ---
-    st.markdown("### 📊 Aktuelle Stimmung:")
-    st.info("So haben wir in dieser Session bisher abgestimmt:")
-
-    live_df = pd.DataFrame(
-        {
-            "Stimmung": ["Gut", "Mittel", "Schlecht"],
-            "Stimmen": [st.session_state.session_votes["Gut"], st.session_state.session_votes["Mittel"], st.session_state.session_votes["Schlecht"]],
-        }
-    )
-
-    total_live = live_df["Stimmen"].sum()
-    if total_live > 0:
-        labels = ["Gut", "Mittel", "Schlecht"]
-        values = [st.session_state.session_votes["Gut"], st.session_state.session_votes["Mittel"], st.session_state.session_votes["Schlecht"]]
-        colors = ["#2ecc71", "#f39c12", "#e74c3c"]
-
-        fig_live = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors), hole=0.4)])
-        fig_live.update_layout(height=300)
-        st.plotly_chart(fig_live, use_container_width=True)
-    else:
-        st.write("*Noch keine Stimmen abgegeben.*")
-
     st.markdown("<br><br>", unsafe_allow_html=True)
 
     # Versteckter Beenden-Button für die Lehrkraft
     with st.expander("Lehrkraft-Bereich"):
         # Vorschau der Stimmen
-        st.write("Bisherige Stimmen (werden beim Beenden gespeichert):")
+        st.write("Bisherige Stimmen:")
         st.write(
             f"😃 {st.session_state.session_votes['Gut']} |"
             + f" 😐 {st.session_state.session_votes['Mittel']} |"
             + f" ☹️ {st.session_state.session_votes['Schlecht']}"
         )
-        if st.button("❌ Session beenden"):
+
+        if st.button("💾 Session speichern", type="primary", use_container_width=True):
             # Speichere die aggregierten Daten in die Datenbank über die übergebene Callback-Funktion
             save_session_callback(
                 phase=phase,
@@ -297,6 +267,13 @@ def show_kiosk_active(phase, save_session_callback):
                 timestamp=st.session_state.session_start,
             )
             # Aufräumen
+            st.session_state.kiosk_active = False
+            del st.session_state.session_votes
+            del st.session_state.session_start
+            st.rerun()
+
+        if st.button("🗑️ Session verwerfen", use_container_width=True):
+            # Nichts speichern, nur aufräumen
             st.session_state.kiosk_active = False
             del st.session_state.session_votes
             del st.session_state.session_start

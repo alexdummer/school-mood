@@ -223,6 +223,14 @@ def main():
         css += """
         [data-testid="stSidebar"] { display: none !important; }
         [data-testid="collapsedControl"] { display: none !important; }
+        .stApp > header { display: none !important; }
+        .block-container {
+            max-width: 100% !important;
+            padding-top: 1rem !important;
+            padding-right: 1rem !important;
+            padding-left: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
         """
 
     css += "</style>"
