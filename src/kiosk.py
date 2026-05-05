@@ -2,7 +2,7 @@
 import streamlit as st
 import plotly.graph_objects as go
 import uuid
-from src.db import cast_vote, get_session_vote_counts, close_session, discard_session
+import src.db as db
 
 
 def show_kiosk_active(session_id: int, phase: str, class_name: str):
@@ -124,19 +124,19 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
 
         with col1:
             if st.button("😃"):
-                cast_vote(session_id, "Gut")
+                db.cast_vote(session_id, "Gut")
                 st.session_state.show_popup = True
                 st.session_state.popup_type = "Gut"
 
         with col2:
             if st.button("😐"):
-                cast_vote(session_id, "Mittel")
+                db.cast_vote(session_id, "Mittel")
                 st.session_state.show_popup = True
                 st.session_state.popup_type = "Mittel"
 
         with col3:
             if st.button("☹️"):
-                cast_vote(session_id, "Schlecht")
+                db.cast_vote(session_id, "Schlecht")
                 st.session_state.show_popup = True
                 st.session_state.popup_type = "Schlecht"
 
@@ -145,7 +145,7 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
         st.markdown("### 📊 Aktuelle Stimmung:")
 
         # Stimmen direkt aus DB lesen (aktueller Stand)
-        counts = get_session_vote_counts(session_id)
+        counts = db.get_session_vote_counts(session_id)
         total_live = sum(counts.values())
 
         if total_live > 0:
@@ -219,7 +219,7 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
 
     # ── Lehrkraft-Bereich ─────────────────────────────────────────────────────
     with st.expander("🔒 Lehrkraft-Bereich"):
-        counts = get_session_vote_counts(session_id)
+        counts = db.get_session_vote_counts(session_id)
         st.write("**Bisherige Stimmen:**")
         col_g, col_m, col_s = st.columns(3)
         col_g.metric("😃 Gut", counts["Gut"])
@@ -234,7 +234,7 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
             col_yes, col_no = st.columns(2)
             with col_yes:
                 if st.button("🗑️ Ja, verwerfen", type="primary", use_container_width=True):
-                    discard_session(session_id)
+                    db.discard_session(session_id)
                     _reset_kiosk_state()
                     st.rerun()
             with col_no:
@@ -243,7 +243,7 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
                     st.rerun()
         else:
             if st.button("✅ Session beenden & speichern", type="primary", use_container_width=True):
-                close_session(session_id)
+                db.close_session(session_id)
                 _reset_kiosk_state()
                 st.rerun()
 

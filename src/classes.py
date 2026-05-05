@@ -4,15 +4,15 @@ Ermöglicht das Anlegen, Einsehen und Löschen von Klassen.
 """
 
 import streamlit as st
-from src.db import create_class, get_classes, delete_class, get_active_sessions, open_session
+import src.db as db
 
 
 def show_class_manager():
     """Zeigt die Klassenverwaltung und den Kiosk-Starter für eine gewählte Klasse."""
     st.title("🏫 Klassen verwalten")
 
-    classes = get_classes()
-    active_sessions = {s["class_name"]: s for s in get_active_sessions()}
+    classes = db.get_classes()
+    active_sessions = {s["class_name"]: s for s in db.get_active_sessions()}
 
     # ── Neue Klasse anlegen ───────────────────────────────────────────────────
     with st.expander("➕ Neue Klasse anlegen", expanded=len(classes) == 0):
@@ -33,7 +33,7 @@ def show_class_manager():
                 elif any(c["name"] == new_name.strip() for c in classes):
                     st.warning(f"Die Klasse '{new_name.strip()}' existiert bereits.")
                 else:
-                    create_class(new_name)
+                    db.create_class(new_name)
                     st.success(f"Klasse '{new_name.strip()}' wurde angelegt!")
                     st.rerun()
 
@@ -99,7 +99,7 @@ def show_class_manager():
                         key=f"del_{cls['id']}",
                         use_container_width=True,
                     ):
-                        delete_class(cls["id"])
+                        db.delete_class(cls["id"])
                         st.success(f"Klasse '{cls['name']}' wurde gelöscht.")
                         st.rerun()
                 else:
@@ -121,7 +121,7 @@ def show_class_manager():
         col_go, col_cancel = st.columns(2)
         with col_go:
             if st.button("▶️ Session starten & Kiosk aktivieren", type="primary", use_container_width=True):
-                session_id = open_session(
+                session_id = db.open_session(
                     class_id=st.session_state["kiosk_pending_class_id"],
                     phase=phase,
                 )

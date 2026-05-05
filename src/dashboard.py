@@ -6,15 +6,15 @@ Kombiniert neue Einzelstimmen-Daten mit alten session_logs.
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
-from src.db import get_new_votes_df, get_aggregated_sessions_df, get_legacy_df
+import src.db as db
 
 
 def draw_dashboard():
     """Zeichnet das vollständige Dashboard mit Tabs für Gesamt- und Klassenansicht."""
     # Daten laden
-    votes_df = get_new_votes_df()  # Einzelstimmen (neues System)
-    sessions_df = get_aggregated_sessions_df()  # Aggregiert nach Session
-    legacy_df = get_legacy_df()  # Alte session_logs
+    votes_df = db.get_new_votes_df()  # Einzelstimmen (neues System)
+    sessions_df = db.get_aggregated_sessions_df()  # Aggregiert nach Session
+    legacy_df = db.get_legacy_df()  # Alte session_logs
 
     has_new_data = not votes_df.empty
     has_legacy = not legacy_df.empty
