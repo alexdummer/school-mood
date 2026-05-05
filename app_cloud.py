@@ -357,39 +357,43 @@ def _show_live_view():
             cols = st.columns(cols_per_row)
             for j, sess in enumerate(active[i : i + cols_per_row]):
                 with cols[j]:
-                    with st.container(border=True):
-                        gut = int(sess.get("gut_count") or 0)
-                        mittel = int(sess.get("mittel_count") or 0)
-                        schlecht = int(sess.get("schlecht_count") or 0)
-                        total = int(sess.get("total_votes") or 0)
+                    gut = int(sess.get("gut_count") or 0)
+                    mittel = int(sess.get("mittel_count") or 0)
+                    schlecht = int(sess.get("schlecht_count") or 0)
+                    total = int(sess.get("total_votes") or 0)
 
-                        st.markdown(
-                            f"<h2 style='margin:0;'>🏷️ {sess['class_name']}</h2>"
-                            f"<p style='color:gray; margin:0;'>{sess['phase']} · "
-                            f"seit {str(sess['started_at'])[:16]}</p>",
-                            unsafe_allow_html=True,
+                    st.markdown(
+                        "<div style='border:1px solid #dee2e6; border-radius:8px; padding:12px 16px; margin-bottom:8px;'>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f"<h2 style='margin:0;'>🏷️ {sess['class_name']}</h2>"
+                        f"<p style='color:gray; margin:0;'>{sess['phase']} · "
+                        f"seit {str(sess['started_at'])[:16]}</p>",
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(f"**{total} Stimmen bisher**")
+
+                    if total > 0:
+                        fig = go.Figure(
+                            data=[
+                                go.Pie(
+                                    labels=["Gut", "Mittel", "Schlecht"],
+                                    values=[gut, mittel, schlecht],
+                                    marker=dict(colors=["#2ecc71", "#f39c12", "#e74c3c"]),
+                                    hole=0.5,
+                                    textinfo="label+percent",
+                                )
+                            ]
                         )
-                        st.markdown(f"**{total} Stimmen bisher**")
+                        fig.update_layout(margin=dict(t=5, b=5, l=5, r=5), height=250)
+                        st.plotly_chart(fig, use_container_width=True)
 
-                        if total > 0:
-                            fig = go.Figure(
-                                data=[
-                                    go.Pie(
-                                        labels=["Gut", "Mittel", "Schlecht"],
-                                        values=[gut, mittel, schlecht],
-                                        marker=dict(colors=["#2ecc71", "#f39c12", "#e74c3c"]),
-                                        hole=0.5,
-                                        textinfo="label+percent",
-                                    )
-                                ]
-                            )
-                            fig.update_layout(margin=dict(t=5, b=5, l=5, r=5), height=250)
-                            st.plotly_chart(fig, use_container_width=True)
-
-                        c1, c2, c3 = st.columns(3)
-                        c1.metric("😃 Gut", gut)
-                        c2.metric("😐 Mittel", mittel)
-                        c3.metric("☹️ Schlecht", schlecht)
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("😃 Gut", gut)
+                    c2.metric("😐 Mittel", mittel)
+                    c3.metric("☹️ Schlecht", schlecht)
+                    st.markdown("</div>", unsafe_allow_html=True)
 
     time.sleep(10)
     st.rerun()

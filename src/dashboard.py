@@ -226,30 +226,34 @@ def _draw_klassenansicht(votes_df, sessions_df):
             total = gut + mittel + schlecht
 
             with cols[j]:
-                with st.container(border=True):
-                    st.markdown(f"**🏷️ {cls}** – {total} Stimmen")
-                    if total > 0:
-                        fig_mini = go.Figure(
-                            data=[
-                                go.Pie(
-                                    labels=["Gut", "Mittel", "Schlecht"],
-                                    values=[gut, mittel, schlecht],
-                                    marker=dict(colors=["#2ecc71", "#f39c12", "#e74c3c"]),
-                                    hole=0.5,
-                                    textinfo="percent",
-                                    showlegend=False,
-                                )
-                            ]
-                        )
-                        fig_mini.update_layout(
-                            margin=dict(t=5, b=5, l=5, r=5),
-                            height=200,
-                        )
-                        st.plotly_chart(fig_mini, use_container_width=True)
-                        col_g, col_m, col_s = st.columns(3)
-                        col_g.metric("😃", gut)
-                        col_m.metric("😐", mittel)
-                        col_s.metric("☹️", schlecht)
+                st.markdown(
+                    "<div style='border:1px solid #dee2e6; border-radius:8px; padding:12px 16px; margin-bottom:8px;'>",
+                    unsafe_allow_html=True,
+                )
+                st.markdown(f"**🏷️ {cls}** – {total} Stimmen")
+                if total > 0:
+                    fig_mini = go.Figure(
+                        data=[
+                            go.Pie(
+                                labels=["Gut", "Mittel", "Schlecht"],
+                                values=[gut, mittel, schlecht],
+                                marker=dict(colors=["#2ecc71", "#f39c12", "#e74c3c"]),
+                                hole=0.5,
+                                textinfo="percent",
+                                showlegend=False,
+                            )
+                        ]
+                    )
+                    fig_mini.update_layout(
+                        margin=dict(t=5, b=5, l=5, r=5),
+                        height=200,
+                    )
+                    st.plotly_chart(fig_mini, use_container_width=True)
+                    col_g, col_m, col_s = st.columns(3)
+                    col_g.metric("😃", gut)
+                    col_m.metric("😐", mittel)
+                    col_s.metric("☹️", schlecht)
+                st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Session-Verlauf pro Klasse ─────────────────────────────────────────────
     if not sessions_df.empty and "class_name" in sessions_df.columns:
