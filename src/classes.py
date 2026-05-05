@@ -50,60 +50,60 @@ def show_class_manager():
         is_active = cls["name"] in active_sessions
         active_session = active_sessions.get(cls["name"])
 
-        with st.container(border=True):
-            col_name, col_status, col_actions = st.columns([3, 2, 3])
+        # Bordered card via HTML (st.container(border=True) erfordert Streamlit >= 1.30)
+        st.markdown(
+            "<div style='border:1px solid #dee2e6; border-radius:8px; " "padding:12px 16px; margin-bottom:12px;'>",
+            unsafe_allow_html=True,
+        )
+        col_name, col_status, col_actions = st.columns([3, 2, 3])
 
-            with col_name:
-                st.markdown(f"### 🏷️ {cls['name']}")
+        with col_name:
+            st.markdown(f"### 🏷️ {cls['name']}")
 
-            with col_status:
-                if is_active:
-                    sess = active_session
-                    st.markdown(
-                        f"""
-                        <div style='background:#d4edda; border:1px solid #28a745;
-                             border-radius:8px; padding:8px 12px; margin-top:8px;'>
-                            <b style='color:#155724;'>🟢 Session aktiv</b><br>
-                            <small style='color:#155724;'>{sess['phase']}<br>
-                            {sess['total_votes']} Stimmen bisher</small>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown(
-                        """
-                        <div style='background:#f8f9fa; border:1px solid #dee2e6;
-                             border-radius:8px; padding:8px 12px; margin-top:8px;'>
-                            <b style='color:#6c757d;'>⚪ Keine aktive Session</b>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
+        with col_status:
+            if is_active:
+                sess = active_session
+                st.markdown(
+                    f"<div style='background:#d4edda; border:1px solid #28a745;"
+                    f"border-radius:8px; padding:8px 12px; margin-top:8px;'>"
+                    f"<b style='color:#155724;'>🟢 Session aktiv</b><br>"
+                    f"<small style='color:#155724;'>{sess['phase']}<br>"
+                    f"{sess['total_votes']} Stimmen bisher</small></div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    "<div style='background:#f8f9fa; border:1px solid #dee2e6;"
+                    "border-radius:8px; padding:8px 12px; margin-top:8px;'>"
+                    "<b style='color:#6c757d;'>⚪ Keine aktive Session</b></div>",
+                    unsafe_allow_html=True,
+                )
 
-            with col_actions:
-                st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
-                if not is_active:
-                    if st.button(
-                        "▶️ Kiosk starten",
-                        key=f"start_{cls['id']}",
-                        use_container_width=True,
-                        type="primary",
-                    ):
-                        st.session_state["kiosk_pending_class_id"] = cls["id"]
-                        st.session_state["kiosk_pending_class_name"] = cls["name"]
-                        st.rerun()
+        with col_actions:
+            st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
+            if not is_active:
+                if st.button(
+                    "▶️ Kiosk starten",
+                    key=f"start_{cls['id']}",
+                    use_container_width=True,
+                    type="primary",
+                ):
+                    st.session_state["kiosk_pending_class_id"] = cls["id"]
+                    st.session_state["kiosk_pending_class_name"] = cls["name"]
+                    st.rerun()
 
-                    if st.button(
-                        "🗑️ Löschen",
-                        key=f"del_{cls['id']}",
-                        use_container_width=True,
-                    ):
-                        db.delete_class(cls["id"])
-                        st.success(f"Klasse '{cls['name']}' wurde gelöscht.")
-                        st.rerun()
-                else:
-                    st.info("Kiosk läuft auf diesem oder einem anderen Gerät.")
+                if st.button(
+                    "🗑️ Löschen",
+                    key=f"del_{cls['id']}",
+                    use_container_width=True,
+                ):
+                    db.delete_class(cls["id"])
+                    st.success(f"Klasse '{cls['name']}' wurde gelöscht.")
+                    st.rerun()
+            else:
+                st.info("Kiosk läuft auf diesem oder einem anderen Gerät.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # ── Kiosk-Start Dialog ────────────────────────────────────────────────────
     if "kiosk_pending_class_id" in st.session_state:
