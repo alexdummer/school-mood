@@ -338,8 +338,11 @@ def _patch_db_module():
 
 
 def _show_live_view():
-    import time
     import plotly.graph_objects as go
+    from streamlit_autorefresh import st_autorefresh
+
+    # Auto-Refresh im Hintergrund
+    st_autorefresh(interval=10000, key="live_view_refresh_cloud")
 
     st.title("📡 Live-Anzeige")
     st.markdown("*Aktualisiert automatisch alle 10 Sekunden.*")
@@ -394,9 +397,6 @@ def _show_live_view():
                     c2.metric("😐 Mittel", mittel)
                     c3.metric("☹️ Schlecht", schlecht)
                     st.markdown("</div>", unsafe_allow_html=True)
-
-    time.sleep(10)
-    st.rerun()
 
 
 # ---------------------------------------------------------------------------

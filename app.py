@@ -78,9 +78,12 @@ def main():
 
 def _show_live_view():
     """Live-Anzeige aller aktuell laufenden Sessions (mit Auto-Refresh)."""
-    import time
     import plotly.graph_objects as go
     from src.db import get_active_sessions
+    from streamlit_autorefresh import st_autorefresh
+
+    # Auto-Refresh im Hintergrund ohne den Python-Thread zu blockieren
+    st_autorefresh(interval=10000, key="live_view_refresh")
 
     st.title("📡 Live-Anzeige")
     st.markdown("*Aktualisiert automatisch alle 10 Sekunden.*")
@@ -141,10 +144,6 @@ def _show_live_view():
                         c2.metric("😐 Mittel", mittel)
                         c3.metric("☹️ Schlecht", schlecht)
                         st.markdown("</div>", unsafe_allow_html=True)
-
-    # Auto-Refresh
-    time.sleep(10)
-    st.rerun()
 
 
 if __name__ == "__main__":

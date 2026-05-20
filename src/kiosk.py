@@ -1,6 +1,5 @@
 # Letztes Update: Klassen-Support & sofortige DB-Persistenz
 import streamlit as st
-import plotly.graph_objects as go
 import uuid
 import src.db as db
 
@@ -149,12 +148,44 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
         total_live = sum(counts.values())
 
         if total_live > 0:
-            labels = ["Gut", "Mittel", "Schlecht"]
-            values = [counts["Gut"], counts["Mittel"], counts["Schlecht"]]
-            colors = ["#2ecc71", "#f39c12", "#e74c3c"]
-            fig_live = go.Figure(data=[go.Pie(labels=labels, values=values, marker=dict(colors=colors), hole=0.4)])
-            fig_live.update_layout(height=500, margin=dict(l=10, r=10, t=10, b=10))
-            st.plotly_chart(fig_live, use_container_width=True)
+            gut_pct = counts["Gut"] / total_live * 100
+            mittel_pct = counts["Mittel"] / total_live * 100
+
+            css_pie = f"""
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="
+                    width: clamp(200px, 30vw, 400px);
+                    aspect-ratio: 1 / 1;
+                    border-radius: 50%;
+                    background: conic-gradient(
+                        #2ecc71 0% {gut_pct}%,
+                        #f39c12 {gut_pct}% {gut_pct + mittel_pct}%,
+                        #e74c3c {gut_pct + mittel_pct}% 100%
+                    );
+                    position: relative;
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                    margin: 20px 0;
+                ">
+                    <div style="
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 50%;
+                        height: 50%;
+                        background-color: white;
+                        border-radius: 50%;
+                    "></div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; justify-content: center;
+                 gap: 15px; font-size: clamp(1rem, 2vw, 1.5rem); font-family: sans-serif; margin-top: 10px;">
+                    <div><span style="color: #2ecc71;">■</span> Gut ({counts["Gut"]})</div>
+                    <div><span style="color: #f39c12;">■</span> Mittel ({counts["Mittel"]})</div>
+                    <div><span style="color: #e74c3c;">■</span> Schlecht ({counts["Schlecht"]})</div>
+                </div>
+            </div>
+            """
+            st.markdown(css_pie, unsafe_allow_html=True)
         else:
             st.write("*Noch keine Stimmen abgegeben.*")
 
