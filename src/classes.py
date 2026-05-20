@@ -82,14 +82,22 @@ def show_class_manager():
         with col_actions:
             st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
             if not is_active:
+                phase = st.selectbox("Phase", ["Ankunft in der Schule", "Nach Hause gehen"], key=f"phase_{cls['id']}", label_visibility="collapsed")
+
                 if st.button(
                     "▶️ Kiosk starten",
                     key=f"start_{cls['id']}",
                     use_container_width=True,
                     type="primary",
                 ):
-                    st.session_state["kiosk_pending_class_id"] = cls["id"]
-                    st.session_state["kiosk_pending_class_name"] = cls["name"]
+                    session_id = db.open_session(
+                        class_id=cls["id"],
+                        phase=phase,
+                    )
+                    st.session_state.kiosk_active = True
+                    st.session_state.kiosk_session_id = session_id
+                    st.session_state.kiosk_phase = phase
+                    st.session_state.kiosk_class_name = cls["name"]
                     st.rerun()
 
                 if st.button(
@@ -104,38 +112,3 @@ def show_class_manager():
                 st.info("Kiosk läuft auf diesem oder einem anderen Gerät.")
 
         st.markdown("</div>", unsafe_allow_html=True)
-
-    # ── Kiosk-Start Dialog ────────────────────────────────────────────────────
-    if "kiosk_pending_class_id" in st.session_state:
-        st.markdown("---")
-        cls_name = st.session_state.get("kiosk_pending_class_name", "")
-        st.subheader(f"⚙️ Kiosk-Session für Klasse **{cls_name}** starten")
-
-        phase = st.radio(
-            "Phase für diese Session:",
-            ["Ankunft in der Schule", "Nach Hause gehen"],
-            key="kiosk_pending_phase",
-            horizontal=True,
-        )
-
-        col_go, col_cancel = st.columns(2)
-        with col_go:
-            if st.button("▶️ Session starten & Kiosk aktivieren", type="primary", use_container_width=True):
-                session_id = db.open_session(
-                    class_id=st.session_state["kiosk_pending_class_id"],
-                    phase=phase,
-                )
-                st.session_state.kiosk_active = True
-                st.session_state.kiosk_session_id = session_id
-                st.session_state.kiosk_phase = phase
-                st.session_state.kiosk_class_name = cls_name
-                # Aufräumen
-                del st.session_state["kiosk_pending_class_id"]
-                del st.session_state["kiosk_pending_class_name"]
-                st.rerun()
-
-        with col_cancel:
-            if st.button("Abbrechen", use_container_width=True):
-                del st.session_state["kiosk_pending_class_id"]
-                del st.session_state["kiosk_pending_class_name"]
-                st.rerun()
