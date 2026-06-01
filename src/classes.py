@@ -110,5 +110,13 @@ def show_class_manager():
                     st.rerun()
             else:
                 st.info("Kiosk läuft auf diesem oder einem anderen Gerät.")
+                if st.button(
+                    "⏹️ Session beenden",
+                    key=f"stop_{cls['id']}",
+                    use_container_width=True,
+                ):
+                    db.close_session(active_session["id"])
+                    st.success(f"Session für '{cls['name']}' wurde beendet.")
+                    st.rerun()
 
         st.markdown("</div>", unsafe_allow_html=True)
