@@ -110,7 +110,7 @@ def _show_live_view():
                         total = sess["total_votes"]
 
                         st.markdown(
-                            "<div style='border:1px solid #dee2e6; border-radius:8px; padding:12px 16px; margin-bottom:8px;'>",
+                            "<div style='border:1px solid #dee2e6; border-radius:8px; padding:12px 16px; margin-bottom:8px;'>",  # noqa: E501
                             unsafe_allow_html=True,
                         )
                         st.markdown(

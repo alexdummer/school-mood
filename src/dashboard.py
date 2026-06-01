@@ -262,7 +262,15 @@ def _draw_klassenansicht(votes_df, sessions_df):
 
         sess_filtered = sessions_df[sessions_df["class_name"].isin(selected_classes)]
         if not sess_filtered.empty:
-            display_cols = ["class_name", "phase", "started_at", "gut_count", "mittel_count", "schlecht_count", "total_votes"]
+            display_cols = [
+                "class_name",
+                "phase",
+                "started_at",
+                "gut_count",
+                "mittel_count",
+                "schlecht_count",
+                "total_votes",
+            ]
             available = [c for c in display_cols if c in sess_filtered.columns]
             st.dataframe(
                 sess_filtered[available].rename(
@@ -306,7 +314,7 @@ def _draw_legacy_view(legacy_df):
     kpi1, kpi2, kpi3 = st.columns(3)
     kpi1.metric("Gesamt Stimmen (alt)", total)
     kpi2.metric("Sessions (alt)", len(legacy_df))
-    kpi3.metric("Anteil 'Gut'", f"{round(gut_total/total*100, 1)}%" if total > 0 else "—")
+    kpi3.metric("Anteil 'Gut'", f"{round(gut_total / total * 100, 1)}%" if total > 0 else "—")
 
     if total > 0:
         col_pie, _ = st.columns([2, 1])

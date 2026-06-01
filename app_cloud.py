@@ -188,7 +188,10 @@ def _cloud_open_session(class_id: int, phase: str) -> int:
     school = _school_id()
     with conn.session as s:
         result = s.execute(
-            text("INSERT INTO sessions (school_id, class_id, phase, started_at)" " VALUES (:school, :cid, :phase, :t) RETURNING id"),
+            text(
+                "INSERT INTO sessions (school_id, class_id, phase, started_at)"
+                " VALUES (:school, :cid, :phase, :t) RETURNING id"
+            ),
             {"school": school, "cid": class_id, "phase": phase, "t": datetime.now()},
         )
         session_id = result.fetchone()[0]
@@ -366,7 +369,7 @@ def _show_live_view():
                     total = int(sess.get("total_votes") or 0)
 
                     st.markdown(
-                        "<div style='border:1px solid #dee2e6; border-radius:8px; padding:12px 16px; margin-bottom:8px;'>",
+                        "<div style='border:1px solid #dee2e6; border-radius:8px; padding:12px 16px; margin-bottom:8px;'>",  # noqa: E501
                         unsafe_allow_html=True,
                     )
                     st.markdown(

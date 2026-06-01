@@ -82,7 +82,12 @@ def show_class_manager():
         with col_actions:
             st.markdown("<div style='margin-top:8px;'></div>", unsafe_allow_html=True)
             if not is_active:
-                phase = st.selectbox("Phase", ["Ankunft in der Schule", "Nach Hause gehen"], key=f"phase_{cls['id']}", label_visibility="collapsed")
+                phase = st.selectbox(
+                    "Phase",
+                    ["Ankunft in der Schule", "Nach Hause gehen"],
+                    key=f"phase_{cls['id']}",
+                    label_visibility="collapsed",
+                )
 
                 if st.button(
                     "▶️ Kiosk starten",

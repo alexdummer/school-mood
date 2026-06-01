@@ -19,11 +19,13 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
 
     # ── Kopfzeile ─────────────────────────────────────────────────────────────
     st.markdown(
-        "<h1 style='text-align: center; font-size: clamp(1.5rem, 5vw, 3rem); margin-bottom: 0;'>" "Wie geht es dir heute?</h1>",
+        "<h1 style='text-align: center; font-size: clamp(1.5rem, 5vw, 3rem); margin-bottom: 0;'>"
+        "Wie geht es dir heute?</h1>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        f"<h3 style='text-align: center; color: gray; font-size: clamp(1rem, 3vw, 1.5rem); margin-top: 0;'>" f"{class_name} · {phase}</h3>",
+        f"<h3 style='text-align: center; color: gray; font-size: clamp(1rem, 3vw, 1.5rem); margin-top: 0;'>"
+        f"{class_name} · {phase}</h3>",
         unsafe_allow_html=True,
     )
     st.markdown("---")
@@ -285,6 +287,14 @@ def show_kiosk_active(session_id: int, phase: str, class_name: str):
 
 def _reset_kiosk_state():
     """Setzt alle Kiosk-relevanten Session-State-Variablen zurück."""
-    for key in ["kiosk_active", "kiosk_session_id", "kiosk_phase", "kiosk_class_name", "show_popup", "popup_type", "confirm_discard"]:
+    for key in [
+        "kiosk_active",
+        "kiosk_session_id",
+        "kiosk_phase",
+        "kiosk_class_name",
+        "show_popup",
+        "popup_type",
+        "confirm_discard",
+    ]:
         if key in st.session_state:
             del st.session_state[key]
