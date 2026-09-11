@@ -116,6 +116,18 @@ def show_class_manager():
             else:
                 st.info("Kiosk läuft auf diesem oder einem anderen Gerät.")
                 if st.button(
+                    "📲 Session übernehmen",
+                    key=f"takeover_{cls['id']}",
+                    use_container_width=True,
+                    type="primary",
+                ):
+                    st.session_state.kiosk_active = True
+                    st.session_state.kiosk_session_id = active_session["id"]
+                    st.session_state.kiosk_phase = active_session["phase"]
+                    st.session_state.kiosk_class_name = cls["name"]
+                    st.rerun()
+
+                if st.button(
                     "⏹️ Session beenden",
                     key=f"stop_{cls['id']}",
                     use_container_width=True,
