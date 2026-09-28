@@ -23,7 +23,7 @@ streamlit
 pandas
 plotly
 SQLAlchemy
-psycopg2-binary
+psycopg[binary]
 ```
 
 ### 3. Streamlit Cloud einrichten
